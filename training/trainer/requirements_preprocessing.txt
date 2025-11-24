@@ -1,0 +1,8 @@
+# Requirements cho preprocessing script
+
+tqdm>=4.65.0
+sentencepiece>=0.1.99
+
+
+
+
