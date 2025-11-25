@@ -64,3 +64,8 @@ agent/runtime/logs/*
 # Data (keep structure but ignore large files if needed)
 # training/dataset/raw/**/*.txt
 
+dataset/preprocessed/
+dataset/splits/
+dataset/tokenized/
+dataset/
+dataset/
