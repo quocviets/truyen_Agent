@@ -12,23 +12,25 @@
     "attn_pdrop": 0.1
   },
   "training": {
-    "num_epochs": 2,
+    "num_epochs": 50,
     "learning_rate": 0.0003,
     "weight_decay": 0.1,
-    "warmup_steps": 1000,
-    "gradient_accumulation_steps": 16,
+    "warmup_steps": 200,
+    "gradient_accumulation_steps": 1,
+    "batch_size": 2,
     "micro_batch_size": 1,
-    "max_steps": 0,
+    "max_steps": 800,
     "mixed_precision": "bf16",
-    "log_every": 50,
-    "eval_every": 500,
-    "save_every": 1000,
-    "clip_grad_norm": 1.0
+    "log_every": 20,
+    "eval_every": 200,
+    "save_every": 200,
+    "clip_grad_norm": 1.0,
+    "pad_token_id": 0
   },
   "paths": {
     "train_bin": "training/dataset/tokenized/train_1024.pt",
     "val_bin": "training/dataset/tokenized/val_1024.pt",
-    "output_dir": "training/model/350m"
+    "output_dir": "training/model/350m_fast"
   }
 }
 
