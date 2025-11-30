@@ -110,19 +110,32 @@ def evaluate(model, dataloader, device) -> float:
     return loss_sum / max(total, 1)
 
 
-def save_checkpoint(model, optimizer, scheduler, step: int, output_dir: Path, tag: str) -> None:
+def save_checkpoint(
+    model,
+    optimizer,
+    scheduler,
+    step: int,
+    output_dir: Path,
+    tag: str,
+    *,
+    save_hf: bool = False,
+) -> None:
     ensure_dir(output_dir)
+    payload = {
+        "model_state": model.state_dict(),
+        "optimizer_state": optimizer.state_dict(),
+        "scheduler_state": scheduler.state_dict() if scheduler else None,
+        "step": step,
+    }
     ckpt_path = output_dir / f"checkpoint_{tag}.pt"
-    torch.save(
-        {
-            "model_state": model.state_dict(),
-            "optimizer_state": optimizer.state_dict(),
-            "scheduler_state": scheduler.state_dict() if scheduler else None,
-            "step": step,
-        },
-        ckpt_path,
-    )
-    model.save_pretrained(output_dir / f"hf_{tag}")
+    torch.save(payload, ckpt_path)
+
+    latest_path = output_dir / "checkpoint_latest.pt"
+    torch.save(payload, latest_path)
+
+    if save_hf:
+        hf_dir = output_dir / "hf_best"
+        model.save_pretrained(hf_dir)
 
 
 def run_training(
@@ -251,10 +264,25 @@ def run_training(
                     print(f"🧪 Eval step {global_step}: val_loss={val_loss:.4f}")
                     if val_loss < best_val:
                         best_val = val_loss
-                        save_checkpoint(model, optimizer, scheduler, global_step, output_dir, "best")
+                        save_checkpoint(
+                            model,
+                            optimizer,
+                            scheduler,
+                            global_step,
+                            output_dir,
+                            "best",
+                            save_hf=True,
+                        )
 
                 if save_every and global_step % save_every == 0:
-                    save_checkpoint(model, optimizer, scheduler, global_step, output_dir, f"step{global_step}")
+                    save_checkpoint(
+                        model,
+                        optimizer,
+                        scheduler,
+                        global_step,
+                        output_dir,
+                        f"step{global_step}",
+                    )
 
                 if max_steps and global_step >= max_steps:
                     save_checkpoint(model, optimizer, scheduler, global_step, output_dir, "final")
@@ -262,7 +290,14 @@ def run_training(
                     return
 
         if not max_steps:
-            save_checkpoint(model, optimizer, scheduler, global_step, output_dir, f"epoch{epoch + 1}")
+            save_checkpoint(
+                model,
+                optimizer,
+                scheduler,
+                global_step,
+                output_dir,
+                f"epoch{epoch + 1}",
+            )
         if max_steps and global_step >= max_steps:
             break
 
